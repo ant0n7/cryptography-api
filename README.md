@@ -1,5 +1,12 @@
-# Spring Boot Application
-This spring boot API allows to work with following entities:
+# Cryptography API
+The cryptography API can be used for encryption, decryption, and hashing of objects with various methods. The methods supported are Blowfish, Twofish, AES, and BCrypt.
+Following entities are used and have available endpoints:
+* Hashing
+  * BCrypt
+* Cryptography
+  * Blowfish
+  * Twofish
+  * AES
 * Users
 * Groups
 * Roles
@@ -12,7 +19,6 @@ There are two main Roles in this Application.
 ### User Information
 | User          | Password                   | Role    |
 |:--------------|:---------------------------|:--------|
-| remo          | admin                      | ADMIN   |
 | anton         | admin                      | ADMIN   |
 | bob           | password                   | DEFAULT |
 
