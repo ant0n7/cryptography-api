@@ -1,16 +1,11 @@
 # Cryptography API
 The cryptography API can be used for encryption, decryption, and hashing of objects with various methods. The methods supported are Blowfish, Twofish, AES, and BCrypt.
 Following entities are used and have available endpoints:
-* Hashing
-  * BCrypt
-* Cryptography
-  * Blowfish
-  * Twofish
-  * AES
-* Users
-* Groups
-* Roles
-* Authorities
+  * **Blowfish**
+  * Users
+  * Groups
+  * Roles
+  * Authorities
 
 ## Login
 There are two main Roles in this Application.
