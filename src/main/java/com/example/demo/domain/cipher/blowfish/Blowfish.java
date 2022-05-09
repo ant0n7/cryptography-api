@@ -7,6 +7,8 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.Random;
 
+import static com.example.demo.domain.cipher.Key.generateKey;
+
 /**
  * @author anton
  * @since 5/3/2022, Tue
@@ -297,104 +299,82 @@ public class Blowfish extends BlockCipher {
         return rightXor + leftXor;
     }
 
-    private String lastRound(String s) {
-        String left = s.substring(0, 8); //
-        String right = s.substring(8, 16); //
+    private String lastEncryptRound(String s) {
+        String left = s.substring(0, 8);
+        String right = s.substring(8, 16);
         return xor(right, P[17]) + xor(left, P[16]);
     }
 
+    private String lastDecryptRound(String s) {
+        String left = s.substring(0, 8);
+        String right = s.substring(8, 16);
+        return xor(right, P[1]) + xor(left, P[0]);
+    }
+
     /**
-     * Encrypt a hexadecimal plaintext
+     * Encrypt a hexadecimal plaintext.
      * @param plainText Plaintext in hex format
      * @return          Ciphertext in hex format
      */
-    public String encrypt(String plainText) {
+    public String encryptHex(String plainText) {
         String s = plainText;
 
         for (int i = 0; i < 16; i++) {
             s = singleRound(s, i);
         }
 
-        return lastRound(s);
+        return lastEncryptRound(s);
     }
 
     /**
-     * Generates hexadecimal key string
-     * @param size  Size in bits
-     * @return      Hexadecimal key String object
+     * Encrypt a plaintext.
+     * @param plainText Plaintext in UTF-8 string format
+     * @return          Ciphertext in UTF-8 string format
      */
-    public static String generateKey(int size)  {
-        Random r = new Random();
-        StringBuffer sb = new StringBuffer();
-        while (sb.length() < size / 4) {
-            sb.append(Integer.toHexString(r.nextInt()));
+    public String encrypt(String plainText) {
+        String plainTextHex = stringToHexString(plainText);
+        String cipherHex = encryptHex(plainTextHex);
+        return hexStringToString(cipherHex);
+    }
+
+    /**
+     * Decrypt a hexadecimal ciphertext.
+     * @param cipherText    Ciphertext in hex format
+     * @return              Plaintext in hex format
+     */
+    public String decryptHex(String cipherText) {
+        String s = cipherText;
+        for (int i = 17; i > 1; i--) {
+            s = singleRound(s, i);
         }
 
-        return sb.toString().substring(0, size / 4);
+        return lastDecryptRound(s);
+    }
+
+    public String decrypt(String cipherText) {
+        String cipherTextHex = stringToHexString(cipherText);
+        String plainTextHex = decryptHex(cipherTextHex);
+        return hexStringToString(plainTextHex);
     }
 
     /**
-     * Convert a UTF-8 string to hexadecimal values
-     * @param s String to convert
-     * @return  Converted hexadecimal String object
-     */
-    public static String stringToHexString(String s) {
-        char[] ch = s.toCharArray();
-        StringBuffer sb = new StringBuffer();
-
-        for (char c : ch) {
-            sb.append(Integer.toHexString(c));
-        }
-
-        return sb.toString();
-    }
-
-    /**
-     * Convert a hexadecimal string to UTF-8
-     * @param s String to convert
-     * @return  Converted UTF-8 String object
-     */
-    public static String hexStringToString(String s) {
-        char[] ch = s.toCharArray();
-        StringBuilder result = new StringBuilder();
-
-        for (int i = 0; i < ch.length; i = i + 2) {
-            String temp = "" + ch[i] + "" + ch[i + 1];
-            char c = (char) Integer.parseInt(temp, 16);
-            result.append(c);
-        }
-
-        return result.toString();
-    }
-
-    /**
-     * Initialize a new Blowfish algorithm
+     * Initializes a new Blowfish algorithm
      */
     public Blowfish() {
+        this(generateKey(64));
+    }
+
+    /**
+     * Initializes a new Blowfish algorithm with a custom key
+     * @param key   Has to be a valid size
+     */
+    public Blowfish(String key) {
+        this.key = key;
+
         for (int i = 0; i < 32; i++) {
             moduloValue = moduloValue << 1;
         }
 
-        this.key = generateKey(64);
         this.initializeSubKeys(this.key);
-    }
-
-    public Blowfish(int s) {
-        // Make moduloValue 32 bits big
-        for (int i = 0; i < 32; i++) {
-            moduloValue = moduloValue << 1;
-        }
-
-        // have to be in hex for now
-        String plainText = "123456abcd132536";
-        String key = "aabb09182736ccdd";
-
-        initializeSubKeys(key);
-
-        System.out.println("CIPHER: " + encrypt(plainText));
-    }
-
-    public static void main(String[] args) {
-//        new Blowfish("xx");
     }
 }

@@ -57,5 +57,39 @@ public abstract class BlockCipher {
         return binToHex(binaryResult.toString());
     }
 
+    /**
+     * Convert a UTF-8 string to hexadecimal values
+     * @param s String to convert
+     * @return  Converted hexadecimal String object
+     */
+    public static String stringToHexString(String s) {
+        char[] ch = s.toCharArray();
+        StringBuffer sb = new StringBuffer();
+
+        for (char c : ch) {
+            sb.append(Integer.toHexString(c));
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Convert a hexadecimal string to UTF-8
+     * @param s String to convert
+     * @return  Converted UTF-8 String object
+     */
+    public static String hexStringToString(String s) {
+        char[] ch = s.toCharArray();
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < ch.length; i = i + 2) {
+            String temp = "" + ch[i] + "" + ch[i + 1];
+            char c = (char) Integer.parseInt(temp, 16);
+            result.append(c);
+        }
+
+        return result.toString();
+    }
+
     protected abstract String f(String s);
 }

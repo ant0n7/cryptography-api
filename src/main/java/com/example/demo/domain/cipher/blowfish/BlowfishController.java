@@ -29,8 +29,38 @@ public class BlowfishController {
         return new ResponseEntity<>("This endpoint is working.", HttpStatus.OK);
     }
 
+    @GetMapping("/encrypt/hex/{plaintext}")
+    public ResponseEntity<KeyStringAnswer> encryptHex(@PathVariable String plaintext) {
+        return new ResponseEntity<>(blowfishService.encryptHex(plaintext), HttpStatus.OK);
+    }
+
+    @GetMapping("/encrypt/base64/{plaintext}")
+    public ResponseEntity<KeyStringAnswer> encryptBase64(@PathVariable String plaintext) {
+        return new ResponseEntity<>(blowfishService.encryptBase64(plaintext), HttpStatus.OK);
+    }
+
     @GetMapping("/encrypt/{plaintext}")
     public ResponseEntity<KeyStringAnswer> encrypt(@PathVariable String plaintext) {
         return new ResponseEntity<>(blowfishService.encrypt(plaintext), HttpStatus.OK);
+    }
+
+    @GetMapping("/encrypt/{plaintext}/{key}")
+    public ResponseEntity<KeyStringAnswer> encryptWithKey(@PathVariable String plaintext, @PathVariable String key) {
+        return new ResponseEntity<>(blowfishService.encryptWithKey(plaintext, key), HttpStatus.OK);
+    }
+
+    @GetMapping("/decrypt/hex/{ciphertext}/{key}")
+    public ResponseEntity<KeyStringAnswer> decryptHex(@PathVariable String ciphertext, @PathVariable String key) {
+        return new ResponseEntity<>(blowfishService.decryptHex(ciphertext, key), HttpStatus.OK);
+    }
+
+    @GetMapping("/decrypt/base64/{ciphertext}/{key}")
+    public ResponseEntity<KeyStringAnswer> decryptBase64(@PathVariable String ciphertext, @PathVariable String key) {
+        return new ResponseEntity<>(blowfishService.decryptBase64(ciphertext, key), HttpStatus.OK);
+    }
+
+    @GetMapping("/decrypt/{ciphertext}/{key}")
+    public ResponseEntity<KeyStringAnswer> decrypt(@PathVariable String ciphertext, @PathVariable String key) {
+        return new ResponseEntity<>(blowfishService.decrypt(ciphertext, key), HttpStatus.OK);
     }
 }
