@@ -1,29 +1,25 @@
 package com.example.demo.domain.cipher.blowfish;
 
-import com.example.demo.domain.cipher.base.BlockCipher;
-import lombok.AllArgsConstructor;
+import com.example.demo.domain.cipher.BlockCipher;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.UUID;
-import java.math.BigInteger;
-
+import java.util.Random;
 
 /**
  * @author anton
  * @since 5/3/2022, Tue
  **/
 //@Entity(name = "tbl_blowfish")
-//@Getter
-//@Setter
+@Getter
+@Setter
 //@NoArgsConstructor
 //@AllArgsConstructor
 public class Blowfish extends BlockCipher {
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.AUTO)
-//    private UUID id;
+    public String key;
+    private long moduloValue = 1;
+
     //<editor-fold desc="S-Boxes">
     /**
      *  S-Boxes (Substitution Boxes)
@@ -250,49 +246,18 @@ public class Blowfish extends BlockCipher {
             "b5470917", "9216d5d9", "8979fb1b"};
     //</editor-fold>
 
-    long modVal = 1;
-
-    private String hexToBin(String s) {
-        return String.format("%32s", new BigInteger(s, 16).toString(2)).replace(" ", "0");
-    }
-
-    private String binToHex(String s) {
-        return String.format("%8s", Long.toString(Long.parseUnsignedLong(s, 2), 16)).replace(" ", "0");
-    }
-
-    /**
-     * XOR two strings
-     * @param a Hexadecimal string of the same length as b
-     * @param b Hexadecimal string of the same length as a
-     * @return  Hexadecimal string of the same length as a & b
-     */
-    private String xor(String a, String b) {
-        String binA = hexToBin(a);
-        String binB = hexToBin(b);
-
-        StringBuilder binaryResult = new StringBuilder();
-        for (int i = 0; i < binA.length(); i++) {
-            binaryResult.append((char) ((
-                    (binA.charAt(i) - '0')
-                            ^
-                    (binB.charAt(i) - '0')
-            ) + '0'));
-        }
-
-        return binToHex(binaryResult.toString());
-    }
-
-    private String addBin(String a, String b) {
+    private String modulo(String a, String b) {
         long n1 = Long.parseUnsignedLong(a, 16);
         long n2 = Long.parseUnsignedLong(b, 16);
-        long numberResult = (n1 + n2) % modVal;
+        long numberResult = (n1 + n2) % moduloValue;
 
         String hexResult = String.format("%8s", Long.toHexString(numberResult)).replace(" ", "0");
 
         return hexResult.substring(hexResult.length() - 8);
     }
 
-    private String f(String s) {
+    @Override
+    protected String f(String s) {
         String[] a = new String[4];
         String result = "";
 
@@ -302,13 +267,9 @@ public class Blowfish extends BlockCipher {
             a[i / 2] = S[i / 2][ (int) column];
         }
 
-//        result = addBin(a[0], a[1]);
-//        result = xor(result, a[2]);
-//        result = addBin(result, a[3]);
-//        return result;
-        String afterMod = addBin(a[0], a[1]);
+        String afterMod = modulo(a[0], a[1]);
         String afterXor = xor(afterMod, a[2]);
-        return addBin(afterXor, a[3]);
+        return modulo(afterXor, a[3]);
     }
 
     /**
@@ -319,8 +280,6 @@ public class Blowfish extends BlockCipher {
         int j = 0;
         for (int i = 0; i < P.length; i++) {
             P[i] = xor(P[i], key.substring(j, j+ 8));
-
-//            System.out.println("Subkey " + (i + 1) + " = " + P[i]);
             j = (j + 8) % key.length();
         }
     }
@@ -330,13 +289,9 @@ public class Blowfish extends BlockCipher {
                 left = s.substring(0, 8),
                 right = s.substring(8, 16);
 
-//        System.out.println("LEFT BEFORE XOR: " + left);
         String leftXor = xor(left, P[roundNumber]);
-//        System.out.println("LEFT AFTER XOR:  " + leftXor);
         String fLeft = f(leftXor);
-
         String rightXor = xor(right, fLeft);
-//        System.out.println("Round " + roundNumber + " = " + rightXor + leftXor);
 
         // Left & Right swapped
         return rightXor + leftXor;
@@ -348,7 +303,12 @@ public class Blowfish extends BlockCipher {
         return xor(right, P[17]) + xor(left, P[16]);
     }
 
-    private String encrypt(String plainText) {
+    /**
+     * Encrypt a hexadecimal plaintext
+     * @param plainText Plaintext in hex format
+     * @return          Ciphertext in hex format
+     */
+    public String encrypt(String plainText) {
         String s = plainText;
 
         for (int i = 0; i < 16; i++) {
@@ -358,15 +318,76 @@ public class Blowfish extends BlockCipher {
         return lastRound(s);
     }
 
+    /**
+     * Generates hexadecimal key string
+     * @param size  Size in bits
+     * @return      Hexadecimal key String object
+     */
+    public static String generateKey(int size)  {
+        Random r = new Random();
+        StringBuffer sb = new StringBuffer();
+        while (sb.length() < size / 4) {
+            sb.append(Integer.toHexString(r.nextInt()));
+        }
+
+        return sb.toString().substring(0, size / 4);
+    }
+
+    /**
+     * Convert a UTF-8 string to hexadecimal values
+     * @param s String to convert
+     * @return  Converted hexadecimal String object
+     */
+    public static String stringToHexString(String s) {
+        char[] ch = s.toCharArray();
+        StringBuffer sb = new StringBuffer();
+
+        for (char c : ch) {
+            sb.append(Integer.toHexString(c));
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Convert a hexadecimal string to UTF-8
+     * @param s String to convert
+     * @return  Converted UTF-8 String object
+     */
+    public static String hexStringToString(String s) {
+        char[] ch = s.toCharArray();
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < ch.length; i = i + 2) {
+            String temp = "" + ch[i] + "" + ch[i + 1];
+            char c = (char) Integer.parseInt(temp, 16);
+            result.append(c);
+        }
+
+        return result.toString();
+    }
+
+    /**
+     * Initialize a new Blowfish algorithm
+     */
     public Blowfish() {
-        // Make modVal 32 bit big
         for (int i = 0; i < 32; i++) {
-            modVal = modVal << 1;
+            moduloValue = moduloValue << 1;
+        }
+
+        this.key = generateKey(64);
+        this.initializeSubKeys(this.key);
+    }
+
+    public Blowfish(int s) {
+        // Make moduloValue 32 bits big
+        for (int i = 0; i < 32; i++) {
+            moduloValue = moduloValue << 1;
         }
 
         // have to be in hex for now
-        String plainText = "123455abcd132536";
-        String key = "aabc09182736ccdd";
+        String plainText = "123456abcd132536";
+        String key = "aabb09182736ccdd";
 
         initializeSubKeys(key);
 
@@ -374,6 +395,6 @@ public class Blowfish extends BlockCipher {
     }
 
     public static void main(String[] args) {
-        new Blowfish();
+//        new Blowfish("xx");
     }
 }
