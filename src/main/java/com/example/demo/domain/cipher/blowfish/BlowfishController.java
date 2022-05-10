@@ -63,4 +63,14 @@ public class BlowfishController {
     public ResponseEntity<KeyStringAnswer> decrypt(@PathVariable String ciphertext, @PathVariable String key) {
         return new ResponseEntity<>(blowfishService.decrypt(ciphertext, key), HttpStatus.OK);
     }
+
+    @GetMapping("/encode/{text}")
+    public ResponseEntity<String> hash(@PathVariable String text) {
+        return new ResponseEntity<>(blowfishService.encodeBase64(text), HttpStatus.OK);
+    }
+
+    @GetMapping("/decode/{text}")
+    public ResponseEntity<String> decode(@PathVariable String text) {
+        return new ResponseEntity<>(blowfishService.decodeBase64(text), HttpStatus.OK);
+    }
 }

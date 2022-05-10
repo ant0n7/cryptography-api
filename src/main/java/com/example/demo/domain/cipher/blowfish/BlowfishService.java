@@ -14,4 +14,6 @@ public interface BlowfishService {
     KeyStringAnswer decryptHex(String cipherText, String key);
     KeyStringAnswer decryptBase64(String cipherText, String key);
     KeyStringAnswer decrypt(String cipherText, String key);
+    String encodeBase64(String s);
+    String decodeBase64(String s);
 }

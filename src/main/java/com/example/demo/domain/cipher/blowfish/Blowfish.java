@@ -308,7 +308,7 @@ public class Blowfish extends BlockCipher {
     private String lastDecryptRound(String s) {
         String left = s.substring(0, 8);
         String right = s.substring(8, 16);
-        return xor(right, P[1]) + xor(left, P[0]);
+        return xor(right, P[0]) + xor(left, P[1]);
     }
 
     /**
@@ -348,6 +348,7 @@ public class Blowfish extends BlockCipher {
             s = singleRound(s, i);
         }
 
+//        return xor(s.substring(8, 16), P[0]) + xor(s.substring(0, 8), P[1]);
         return lastDecryptRound(s);
     }
 
@@ -376,5 +377,9 @@ public class Blowfish extends BlockCipher {
         }
 
         this.initializeSubKeys(this.key);
+    }
+
+    public Blowfish(int a) {
+
     }
 }
